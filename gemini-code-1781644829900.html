@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXAM LOCK-IN // Study System</title>
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --bg-card: #111827;
+            --bg-sidebar: #0f1422;
+            --purple-accent: #7c3aed;
+            --purple-hover: #6d28d9;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: #1f2937;
+            --green-accent: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Navigation Layout */
+        .sidebar {
+            width: 270px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            background-color: var(--purple-accent);
+            padding: 8px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .logo-text h1 {
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
+        .logo-text p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px;
+            text-align: left;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background-color: var(--purple-accent);
+            color: var(--text-main);
+        }
+
+        /* Main Workspace Content Area */
+        .workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .header-lane {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 24px;
+        }
+
+        .category-badge {
+            background-color: rgba(124, 58, 237, 0.2);
+            color: #c084fc;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .header-lane h2 {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .header-lane p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Flashcard Wrapper Elements */
+        .deck-info {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            max-width: 800px;
+            height: 6px;
+            background-color: var(--border-color);
+            border-radius: 3px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--purple-accent);
+            transition: width 0.3s ease;
+        }
+
+        /* Card Flips Viewport Engine */
+        .flashcard-viewport {
+            width: 100%;
+            max-width: 800px;
+            height: 420px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .flashcard-viewport.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            text-align: left;
+            justify-content: flex-start;
+            overflow-y: auto;
+        }
+
+        .card-face .concept-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+
+        .card-face .hint-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            position: absolute;
+            bottom: 20px;
+        }
+
+        .content-block {
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        .content-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--purple-accent);
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .content-text {
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .example-box {
+            background-color: rgba(16, 185, 129, 0.08);
+            border-left: 4px solid var(--green-accent);
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            margin-top: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Control Action Buttons Layout */
+        .controls {
+            display: flex;
+            gap: 16px;
+            margin-top: 30px;
+            width: 100%;
+            max-width: 800px;
+            justify-content: center;
+        }
+
+        .btn {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            border-color: var(--purple-accent);
+            background-color: rgba(124, 58, 237, 0.05);
+        }
+
+        .btn-primary {
+            background-color: var(--purple-accent);
+            border-color: var(--purple-accent);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--purple-hover);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo-area">
+            <div class="logo-icon">Ω</div>
+            <div class="logo-text">
+                <h1>EXAM LOCK-IN</h1>
+                <p>STUDY SYSTEM</p>
+            </div>
+        </div>
+        <div class="nav-group">
+            <button class="nav-btn active" onclick="filterDeck('ALL', this)">All Study Material</button>
+            <button class="nav-btn" onclick="filterDeck('GRAMMAR', this)">Part 1: Grammar</button>
+            <button class="nav-btn" onclick="filterDeck('PREFIX', this)">Part 2: Prefixes</button>
+            <button class="nav-btn" onclick="filterDeck('SUFFIX', this)">Part 2: Suffixes</button>
+            <button class="nav-btn" onclick="filterDeck('FICTION', this)">Part 3: Fiction Deep Dive</button>
+            <button class="nav-btn" onclick="filterDeck('POETRY', this)">Part 4: Poetry & Imagery</button>
+            <button class="nav-btn" onclick="filterDeck('VIRTUES', this)">Part 5: Core Values</button>
+            <button class="nav-btn" onclick="filterDeck('LITERATURE', this)">Part 6: Literature Summaries</button>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <div class="header-lane">
+            <div id="active-badge" class="category-badge">ALL DECKS</div>
+            <h2 id="section-title">Linear Active Recall Deck</h2>
+            <p>Click the card body to flip it and test your memory boundaries.</p>
+        </div>
+
+        <div class="deck-info">
+            <span id="card-counter">Card 1 of 0</span>
+            <span id="percent-complete">0% Complete</span>
+        </div>
+
+        <div class="progress-bar-container">
+            <div id="progress" class="progress-bar"></div>
+        </div>
+
+        <div class="flashcard-viewport" onclick="flipCard()">
+            <div class="flashcard-inner">
+                <div class="card-face card-front">
+                    <div id="front-term" class="concept-title">Loading Term...</div>
+                    <div class="hint-text">⟲ Click to view criteria content</div>
+                </div>
+                <div class="card-face card-back" id="back-content">
+                    </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="navigateCard(-1, event)">← Previous</button>
+            <button class="btn btn-primary" onclick="flipCard(event)">Flip Card</button>
+            <button class="btn" onclick="navigateCard(1, event)">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        // Impeccable Master Matrix Input Source
+        const masterDataset = [
+            // PART 1: GRAMMAR NOTES
+            { cat: 'GRAMMAR', term: 'What is a Sentence?', def: 'A group of words that expresses a complete thought.', ex: 'The student studied late into the night.' },
+            { cat: 'GRAMMAR', term: 'Subject', def: 'The person, place, thing, or idea that is doing or being something.', ex: 'The ancient textbook dropped off the desk.' },
+            { cat: 'GRAMMAR', term: 'Verb', def: 'The main word in a sentence’s predicate expressing an action, occurrence, or state of being.', ex: 'She shouted across the room. / He is tired.' },
+            { cat: 'GRAMMAR', term: 'Predicate', def: 'Part of a sentence that tells what the subject is doing or what is being said about it.', ex: 'The biology teacher passed out the final exams.' },
+            { cat: 'GRAMMAR', term: 'Declarative Sentence', def: 'A statement that declares a fact or expresses information; ends with a period.', ex: 'The exam starts at exactly nine o\'clock tomorrow morning.' },
+            { cat: 'GRAMMAR', term: 'Interrogative Sentence', def: 'Asks a direct question and ends with a question mark.', ex: 'Did you remember to study the morphology section?' },
+            { cat: 'GRAMMAR', term: 'Imperative Sentence', def: 'A grammatical mood used to issue commands, give directions, or make requests; often has an implied subject ("You").', ex: 'Close your notebook and listen carefully.' },
+            { cat: 'GRAMMAR', term: 'Exclamatory Sentence', def: 'Expresses strong emotion and ends with an exclamation mark.', ex: 'I finally got a perfect score on the practice test!' },
+            { cat: 'GRAMMAR', term: 'Independent Clause', def: 'Expresses a complete thought and can stand alone as a sentence.', ex: 'We walked to the library because it was quiet.' },
+            { cat: 'GRAMMAR', term: 'Dependent Clause', def: 'Contains a subject and a verb but cannot stand alone because it forms an incomplete thought.', ex: 'Because it was raining cats and dogs, we stayed inside.' },
+            { cat: 'GRAMMAR', term: 'Noun', def: 'A person, place, thing, or idea.', ex: 'The proctor walked around the classroom filled with anxiety.' },
+            { cat: 'GRAMMAR', term: 'Pronoun', def: 'A word used as a substitute for a noun or noun phrase.', ex: 'They told me that she left her laptop at home.' },
+            { cat: 'GRAMMAR', term: 'Adjective', def: 'A word that modifies or describes a noun or pronoun.', ex: 'The exhausted student drank a large, hot coffee.' },
+            { cat: 'GRAMMAR', term: 'Adverb', def: 'Modifies a verb, an adjective, or another adverb (often answers how, when, where, or to what extent).', ex: 'The clock ticked very loudly, and she finished the test quickly.' },
+            { cat: 'GRAMMAR', term: 'Preposition', def: 'A word or group of words that connects a noun/pronoun to another word, showing time, direction, or location.', ex: 'The cheat sheet was hidden under the rug near the door.' },
+            { cat: 'GRAMMAR', term: 'Conjunction', def: 'A connecting word used to join words, phrases, or clauses (FANBOYS: for, and, nor, but, or, yet, so).', ex: 'I wanted to sleep, but I had to study, so I made espresso.' },
+            { cat: 'GRAMMAR', term: 'Subject-Verb Agreement', def: 'The subject and verb must match in number (Singular subject matches singular verb; plural subject matches plural verb).', ex: 'The student writes every day. / The students write every day.' },
+            { cat: 'GRAMMAR', term: 'Sentence Fragment Error', def: 'An incomplete sentence punctuated as if it were complete (missing a subject, verb, or complete thought).', ex: 'Incorrect: Because she forgot her pencil.\n\nFix: She panicked because she forgot her pencil.' },
+            { cat: 'GRAMMAR', term: 'Run-On Sentence Error', def: 'Incorrectly joins two or more independent clauses without proper punctuation or connecting words.', ex: 'Incorrect: I love English it is my favorite class.\n\nFix: I love English, and it is my favorite class.' },
+            { cat: 'GRAMMAR', term: 'Colon Usage Rule', def: 'Introduces a list, an explanation, or a long quotation.', ex: 'You need three things for the exam: a pencil, an eraser, and a brain.' },
+            { cat: 'GRAMMAR', term: 'Semicolon Usage Rule', def: 'Connects two closely related independent clauses or separates complex list items that already contain commas.', ex: 'My sister is studying chemistry; I am stuck studying grammar.' },
+
+            // PART 2: MORPHOLOGY PREFIXES
+            { cat: 'PREFIX', term: 'fore-', def: 'Meaning: Before, in front of, or ahead of time', ex: 'Construction Matrix: tell / head -> Foretell (to predict) / Forehead' },
+            { cat: 'PREFIX', term: 'pro-', def: 'Meaning: Forward, outward, or in favor of', ex: 'Construction Matrix: ceed (bound) / choice -> Proceed / Pro-choice' },
+            { cat: 'PREFIX', term: 'inter-', def: 'Meaning: Between or among', ex: 'Construction Matrix: national / act -> International / Interact' },
+            { cat: 'PREFIX', term: 'trans-', def: 'Meaning: Across, beyond, or through', ex: 'Construction Matrix: port / form -> Transport / Transform' },
+            { cat: 'PREFIX', term: 'non-', def: 'Meaning: Not or opposite of', ex: 'Construction Matrix: fiction / sense -> Nonfiction / Nonsense' },
+            { cat: 'PREFIX', term: 'over-', def: 'Meaning: Too much, excessive, or completely', ex: 'Construction Matrix: think / whelm (bound) -> Overthink / Overwhelm' },
+            { cat: 'PREFIX', term: 'sub-', def: 'Meaning: Under, below, or secondary', ex: 'Construction Matrix: marine / standard -> Submarine / Substandard' },
+            { cat: 'PREFIX', term: 'semi-', def: 'Meaning: Half or partially', ex: 'Construction Matrix: circle / conscious -> Semicircle / Conscious' },
+            { cat: 'PREFIX', term: 'anti-', def: 'Meaning: Against or opposite', ex: 'Construction Matrix: social / dote (bound) -> Antisocial / Antidote' },
+
+            // PART 2: MORPHOLOGY SUFFIXES
+            { cat: 'SUFFIX', term: '-y', def: 'Meaning/Function: Characterized by, full of, or inclined to', ex: 'Construction Matrix: rain / dirt -> Rainy / Dirty' },
+            { cat: 'SUFFIX', term: '-ly', def: 'Meaning/Function: In a specified manner; characteristic of', ex: 'Construction Matrix: quick / friend -> Quickly (adverb) / Friendly (adjective)' },
+            { cat: 'SUFFIX', term: '-ful', def: 'Meaning/Function: Full of or notable for', ex: 'Construction Matrix: hope / care -> Hopeful / Careful' },
+            { cat: 'SUFFIX', term: '-hood', def: 'Meaning/Function: State, condition, or collection of', ex: 'Construction Matrix: child / neighbor -> Childhood / Neighborhood' },
+            { cat: 'SUFFIX', term: '-less', def: 'Meaning/Function: Without or lacking', ex: 'Construction Matrix: fear / home -> Fearless / Homeless' },
+            { cat: 'SUFFIX', term: '-ness', def: 'Meaning/Function: State, quality, or condition of', ex: 'Construction Matrix: dark / happy -> Darkness / Happiness (changes spelling)' },
+            { cat: 'SUFFIX', term: '-er / -or', def: 'Meaning/Function: One who performs a specific action', ex: 'Construction Matrix: teach / act -> Teacher / Actor' },
+            { cat: 'SUFFIX', term: '-en', def: 'Meaning/Function: To make, become, or made of', ex: 'Construction Matrix: soft / wood -> Soften / Wooden' },
+            { cat: 'SUFFIX', term: '-ment', def: 'Meaning/Function: Action, process, or result of an action', ex: 'Construction Matrix: excite / argue -> Excitement / Argument' },
+
+            // PART 3: ELEMENTS OF FICTION DEEP DIVE
+            { cat: 'FICTION', term: 'The Plot Graph Steps', def: 'Exposition: Context setting\nInciting Incident: Conflict catalyst\nRising Action: Obstacles build suspense\nClimax: Ultimate turning point\nFalling Action: Immediate aftermath\nResolution: New normal baseline.', ex: 'Structure follows a predictable narrative arc trajectory.' },
+            { cat: 'FICTION', term: 'Protagonist vs Antagonist', def: 'Protagonist: Central character driving narrative forward.\nAntagonist: Direct opposing force blocking goals.', ex: 'The primary push and pull dynamic of structural narrative plots.' },
+            { cat: 'FICTION', term: 'Flat vs Round Characters', def: 'Flat: Simple, stable, one-dimensional baseline traits.\nRound: Highly layered, conflicted, realistic background tracking details.', ex: 'Example: The "loyal sidekick" (Flat) vs complex psychological lead (Round).' },
+            { cat: 'FICTION', term: 'Static vs Dynamic Characters', def: 'Static: Internal values remain completely identical beginning to end.\nDynamic: Undergoes deep permanent perspective shift or structural change.', ex: 'Changes stem directly from responding to plot crises.' },
+            { cat: 'FICTION', term: 'Internal Conflict (Character vs Self)', def: 'Psychological battle locked completely inside character mindset.', ex: 'Examples: Dealing with deep guilt, making impossible moral choices, conquering fear.' },
+            { cat: 'FICTION', term: 'External Conflict Formats', def: 'Character vs Character: Direct individual clashing.\nCharacter vs Nature: Environmental survival struggles.\nCharacter vs Society: Defying unfair cultural standard laws.', ex: 'Can also involve alternative forces like Technology or the Supernatural.' },
+            { cat: 'FICTION', term: '1st Person POV & Innocent Eye', def: 'Narrated internally using "I, me, we".\nInnocent Eye: Narrated via naive child/outsider viewpoint; reader notes structural dangers narrator misses.', ex: 'Offers extreme structural intimacy but maps limited observations.' },
+            { cat: 'FICTION', term: '3rd Person Limited vs Omniscient', def: 'Limited: Outside narrator locked strictly inside a single perspective mind.\nOmniscient: God-like all-knowing narrator shifting positions and deep thought access instantly.', ex: 'Omniscient views can cross historical contexts and different locations.' },
+
+            // PART 4: POETRY & IMAGERY
+            { cat: 'POETRY', term: 'Poetry vs Prose Framework', def: 'Poetry: Condenses text using structural lines, stanzas, sensory imagery, rhythmic arrangements, and sound aesthetics.\nProse: Direct formatting structured purely around standard grammatical sentences/paragraphs.', ex: 'Prose acts as basic informative talk; Poetry elevates standard word formatting rules.' },
+            { cat: 'POETRY', term: 'TAP Analysis Framework', def: 'T - Title: Predict focus pre-reading, evaluate deep symbol values post-reading.\nA - Annotate: Circle unfamiliar structures, trace lines, highlight elements.\nP - Paraphrase: Rewrite basic operational definitions using simple modern text.', ex: 'Standard baseline process configuration for processing unknown verse tracks.' },
+            { cat: 'POETRY', term: 'Stanza Formatting Lengths', def: 'Couplet = 2 Lines\nTercet = 3 Lines\nQuatrain = 4 Lines\nQuintet = 5 Lines', ex: 'Acts as standard paragraphs organizing poetic concepts.' },
+            { cat: 'POETRY', term: 'Rhyme Scheme & Rhythm Rules', def: 'Rhyme Scheme: Tracked alphabetic mapping strings (ABAB CDCD).\nRhythm: Syllabus cadence pulse pattern values.\nIambic: Unstressed + Stressed (be-long)\nTrochaic: Stressed + Unstressed (fra-gile)', ex: 'Meter calculates identical rhythm loops tracking down standard single lines.' },
+            { cat: 'POETRY', term: 'Sonnet & Ode Profiles', def: 'Sonnet: 14 strict lines (3 quatrains + 1 couplet) in iambic pentameter structural setups.\nOde: High formal text praising or deeply celebrating a specific object/noun.', ex: 'Sonnets typically track traditional patterns like ABAB CDCD EFEF GG.' },
+            { cat: 'POETRY', term: 'Haiku, Blank Verse, Free Verse', def: 'Haiku: 3 lines mapping 5-7-5 syllable targets.\nBlank Verse: Structured regular meter rhythm lines skipping all rhyming.\nFree Verse: Skips all rhythmic constraint loops; follows natural dialog flows.', ex: 'Free verse permits total unfiltered semantic presentation layout choices.' },
+            { cat: 'POETRY', term: 'Elegy & Epic Formats', def: 'Elegy: Serious reflective verses mourning loss/grief over dead subjects.\nEpic: Extended scale narrative tracking heroic mythical figures through battles.', ex: 'Epics track core foundational values separating good against absolute evil elements.' },
+            { cat: 'POETRY', term: 'Villanelle & Concrete & Found Poetry', def: 'Villanelle: 19 complex line maps (5 tercets + 1 quatrain) utilizing strict repeats.\nConcrete: Visual text placement maps a physical shape matching theme targets.\nFound/Blackout: Redacts secondary source layouts into completely original ideas.', ex: 'Concrete formats link visual architecture straight with lexical translations.' },
+            { cat: 'POETRY', term: 'The 5 Sensory Imagery Variants', def: 'Visual (Sight): Lighting/shapes\nAuditory (Hearing): Sounds/silences\nOlfactory (Smell): Scents invoking memory loops\nGustatory (Taste): Texture/flavors\nTactile (Touch): Texture/temp/physical pressure points', ex: 'Generates real-time "mental movies" tracking inside reader imaginations.' },
+
+            // PART 5: CORE VIRTUES & LITERARY CONNECTIONS
+            { cat: 'VIRTUES', term: '1. Faith', def: 'Definition: Complete trust or confidence in someone, a path, or higher purpose without needing clear previews.', ex: 'Knight in Rusty Armor: Drops off the Summit of Truth rock into the dark abyss.\n\nRomeo & Juliet: Juliet drinks the Friar\'s scary sleep draft trusting the tomb exit layout.' },
+            { cat: 'VIRTUES', term: '2. Hope', def: 'Definition: Keeping forward expectations operational even inside dark/dangerous locations.', ex: 'Knight in Rusty Armor: Pushes along Truth\'s trail weeping to reconnect with family.\n\nRomeo & Juliet: Balcony scene view ("It is the east, and Juliet is the sun").' },
+            { cat: 'VIRTUES', term: '3. Unity', def: 'Definition: Merging items into whole cohesive structures; understanding mutual connections over isolation.', ex: 'Knight in Rusty Armor: Castle of Knowledge lesson matching humanity equal to animals.\n\nRomeo & Juliet: Feuding parents reconcile structural bonds only over dead children.' },
+            { cat: 'VIRTUES', term: '4. Perseverance', def: 'Definition: Determination to sustain trajectory vectors straight through pain or failure points.', ex: 'Knight in Rusty Armor: Drags heavily rusted plates up mountain trails with locked joints.\n\nRomeo & Juliet: Romeo breaches hazardous stone boundary walls ignoring lethal archard guards.' },
+            { cat: 'VIRTUES', term: '5. Charity', def: 'Definition: Delivering unconditional love, aid, or supportive energy without seeking compensation values.', ex: 'Knight in Rusty Armor: Merlin invests months feeding/coaching the lost Knight in woods.\n\nRomeo & Juliet: Nurse constantly compromises career safety lines acting as a secret liaison.' },
+            { cat: 'VIRTUES', term: '6. Respect', def: 'Definition: Processing targets with honor, value, and true validation of unique functional outputs.', ex: 'Knight in Rusty Armor: Knight shifts mindset to absorb wisdom from Squirrel and Rebecca.\n\nRomeo & Juliet (Absence): Tybalt tracks Romeo\'s arrival as an offensive target requiring violence.' },
+            { cat: 'VIRTUES', term: '7. Responsibility', def: 'Definition: Total ownership over custom actions, choice results, and surrounding fallout fields.', ex: 'Knight in Rusty Armor: Castle of Silence breakthrough admitting he prioritized armor over family.\n\nRomeo & Juliet: Escalus states oversight errors ("And I, for winking at your discords too...").' },
+            { cat: 'VIRTUES', term: '8. Compassion', def: 'Definition: Processing external pain empathy matched with intent to lighten burden levels.', ex: 'Knight in Rusty Armor: Cries true tears for family pain inside structural silence rooms.\n\nRomeo & Juliet: Romeo overpays starving Apothecary out of respect for visible poverty.' },
+            { cat: 'VIRTUES', term: '9. Honesty', def: 'Definition: Sincere, explicit processing completely free of secondary cover designs or tracking lies.', ex: 'Knight in Rusty Armor: Confronts real psychological terror regarding internal isolation.\n\nRomeo & Juliet (Absence): Massive cascading tracking arrays of lies bring down clear parent talk.' },
+            { cat: 'VIRTUES', term: '10. Prudence', def: 'Definition: Calculating safety paths ahead based on tracking long-term structural value impacts.', ex: 'Knight in Rusty Armor: Initial chaotic battles shift to tactical thought frameworks later.\n\nRomeo & Juliet (Absence): Marriage under 24 hours. Friar warns: "Wisely and slow; they stumble that run fast."' },
+            { cat: 'VIRTUES', term: '11. Justice', def: 'Definition: Balanced moral fairness evaluating proportional actions matching contextual environments.', ex: 'Knight in Rusty Armor: Transforms simple "slay bad guys" programming into moral equilibrium.\n\nRomeo & Juliet: Escalus matches exile context rules instead of lethal executions for Tybalt\'s killers.' },
+            { cat: 'VIRTUES', term: '12. Fortitude', def: 'Definition: Courageous mindset infrastructure standing firm facing high adversity or explicit threats.', ex: 'Knight in Rusty Armor: Breaks illusion status of the Dragon of Fear and Doubt.\n\nRomeo & Juliet: Juliet confronts aggressive parent threats alone when refusing Paris.' },
+
+            // PART 6: NEW - LITERATURE SUMMARIES & THEMES
+            { cat: 'LITERATURE', term: 'Romeo & Juliet: Conflict & Exposition', def: 'Core Conflict: External (Character vs. Society / Character) — Two teenagers fall in love but are torn apart by a long-standing, violent family feud.\n\nExposition: Verona, Italy. A deadly feud exists between the Montagues and Capulets. The Prince warns that fighting means death. Romeo is depressed because Rosaline doesn\'t love him back.', ex: 'Sets up the foundational boundaries and tension of the tragedy.' },
+            { cat: 'LITERATURE', term: 'Romeo & Juliet: Inciting Incident', def: 'Romeo sneaks into a Capulet masquerade party to see Rosaline, but locks eyes with Juliet. They fall instantly in love, only to discover afterward that they are sworn enemies.', ex: 'The exact catalyst that sets the tragic plot in motion.' },
+            { cat: 'LITERATURE', term: 'Romeo & Juliet: Rising Action', def: '1. Balcony Scene: They declare love and decide to marry secretly.\n2. Secret Marriage: Friar Laurence marries them to bring peace.\n3. Turning Point: Tybalt kills Mercutio. Romeo kills Tybalt and is banished.\n4. Ultimatum: Juliet\'s father violently demands she marry Paris immediately.', ex: 'Complications rapidly escalate the conflict, trapping the protagonists.' },
+            { cat: 'LITERATURE', term: 'Romeo & Juliet: Climax', def: 'Friar Laurence gives Juliet a potion to fake her death. The messenger fails to deliver the plan to Romeo. Hearing she is dead, a heartbroken Romeo buys poison, returns to Verona, and drinks it in her tomb. Juliet wakes up, finds him dead, and stabs herself.', ex: 'The ultimate, devastating point of highest emotional intensity.' },
+            { cat: 'LITERATURE', term: 'Romeo & Juliet: Falling Action & Resolution', def: 'Falling Action: Watchmen find the bodies. Families gather. Friar Laurence confesses the entire secret timeline.\n\nResolution: Stricken with intense grief, Lord Capulet and Lord Montague end their ancient feud and promise to build pure gold statues of the children.', ex: 'The conflict is resolved, but at the ultimate cost of the protagonists\' lives.' },
+            { cat: 'LITERATURE', term: 'The Knight in Rusty Armor: Conflict & Expo', def: 'Core Conflict: Internal (Character vs. Self) — Obsessed with his heroic image, a knight\'s literal armor gets stuck, isolating him from his family.\n\nExposition: A famous Knight proves he is "good" by wearing his armor constantly. His wife (Juliet) and son (Chris) feel abandoned because they can\'t see his real face.', ex: 'The physical armor serves as a metaphor for his emotional walls.' },
+            { cat: 'LITERATURE', term: 'The Knight in Rusty Armor: Inciting Incident', def: 'Juliet gives him a strict ultimatum: take off the armor so they can be a real family, or she will leave him. He tries, but the armor is completely rusted shut and the blacksmith cannot pry it open.', ex: 'Forces the Knight to confront his problem and begin his journey.' },
+            { cat: 'LITERATURE', term: 'The Knight in Rusty Armor: Rising Action', def: '1. Search for Merlin: Walks the Path of Truth with Squirrel and Rebecca.\n2. Castle of Silence: Confronts fear of loneliness; cries real tears, rusting off his helmet.\n3. Castle of Knowledge: Realizes he confused "need" with "love." Tears dissolve arm/leg armor.\n4. Castle of Will & Daring: Faces fiery Dragon of Fear and Doubt. Realizes it\'s an illusion and defeats it.', ex: 'Progressive shedding of ego, fear, and self-delusion.' },
+            { cat: 'LITERATURE', term: 'The Knight in Rusty Armor: Climax', def: 'The Knight reaches the Summit of Truth. A boulder blocks his path with an inscription demanding he let go of everything. Facing his ultimate fear of death, he displays total faith, lets go of the rock, and plummets into the abyss.', ex: 'The absolute leap of faith requiring the total surrender of his identity.' },
+            { cat: 'LITERATURE', term: 'The Knight in Rusty Armor: Resolution', def: 'Falling Action: While falling, he accepts full responsibility for his life and falls upward, defying gravity.\n\nResolution: Lands at the top. Tears of pure joy dissolve his final chest plate. Realizes he is the love, light, and universe. He is entirely free.', ex: 'Complete internal transformation and resolution of his character.' },
+            
+            // CHEAT SHEET COMPARISONS
+            { cat: 'LITERATURE', term: 'Theme Comparison: Prudence vs. Haste', def: 'Romeo & Juliet: The lovers move far too quickly, marrying within 24 hours of meeting, which spirals into disaster.\n\nThe Knight in Rusty Armor: The Knight mindlessly rushes off to battles to look heroic without considering the long-term emotional damage to his family.', ex: 'Both texts warn that impulsive actions without long-term foresight lead to pain.' },
+            { cat: 'LITERATURE', term: 'Theme Comparison: Responsibility', def: 'Romeo & Juliet: The tragedy happens because adults and youth alike hide behind secrets and blame the feud rather than their actions.\n\nThe Knight in Rusty Armor: The Knight\'s breakthrough happens only when he stops blaming his wife for his problems and looks at his own flaws.', ex: 'Accountability is necessary to resolve internal and external conflicts.' },
+            { cat: 'LITERATURE', term: 'Theme Comparison: "Armor"', def: 'Romeo & Juliet: The defensive emotional walls and hatred built up by the Capulets and Montagues permanently isolate them until it\'s too late.\n\nThe Knight in Rusty Armor: The physical armor serves as a literal and metaphorical wall separating the Knight from his true self and his loved ones.', ex: 'Armor prevents genuine human connection and vulnerability.' },
+            { cat: 'LITERATURE', term: 'Theme Comparison: Sacrifice / Letting Go', def: 'Romeo & Juliet: Juliet must sacrifice her family ties and safety (drinking the potion) out of sheer faith to be with Romeo.\n\nThe Knight in Rusty Armor: The Knight must literally let go of the mountain ledge and his own ego to finally break free and save his marriage.', ex: 'True growth or devotion requires stepping into the frightening unknown.' },
+
+            // SHORT STORIES
+            { cat: 'LITERATURE', term: 'Short Story: "Lamb to the Slaughter"', def: 'Author: Roald Dahl\n\nSummary: A pregnant housewife snaps and kills her detective husband with a frozen leg of lamb when he says he\'s leaving her. She then cooks the lamb and feeds it to the investigating police officers.', ex: 'Main Theme (Honesty/Deceit): Innocence can be a dangerous mask; desperate people will use extreme deception to protect themselves.' },
+            { cat: 'LITERATURE', term: 'Short Story: "The Monkey’s Paw"', def: 'Author: W.W. Jacobs\n\nSummary: A family gets a magical paw granting three wishes. They wish for money, arriving as compensation after their son is crushed at work. Final wishes try to undo the horror but bring terrifying consequences.', ex: 'Main Theme (Prudence/Fate): Rushing into greed without thinking about the long-term consequences will destroy you; you cannot cheat fate.' },
+            { cat: 'LITERATURE', term: 'Short Story: "Borders"', def: 'Author: Thomas King\n\nSummary: A Blackfoot mother trying to cross into the U.S. gets stuck in "no-man\'s-land" because she proudly refuses to identify her citizenship as Canadian or American—only as "Blackfoot."', ex: 'Main Theme (Respect/Fortitude): Having the inner strength to stand up for your identity and culture against massive systemic pressure.' },
+            { cat: 'LITERATURE', term: 'Short Story: "The Necklace"', def: 'Author: Guy de Maupassant\n\nSummary: A middle-class woman borrows a diamond necklace to look rich, loses it, and spends 10 years of grueling labor to buy a real replacement—only to find out the original was a cheap fake.', ex: 'Main Theme (Honesty/Pride): A lack of honesty with yourself and a shallow obsession with looking wealthy can ruin your entire life.' },
+            { cat: 'LITERATURE', term: 'Short Story: "The Lottery"', def: 'Author: Shirley Jackson\n\nSummary: A friendly town gathers for their annual "lottery." Instead of a prize, the "winner" (Tessie) is randomly selected to be brutally stoned to death by her friends, neighbors, and family.', ex: 'Main Theme (Responsibility/Blind Tradition): Blindly following violent customs just because "that\'s how it\'s always been done" destroys personal morality.' }
+        ];
+
+        let activeDeck = [...masterDataset];
+        let currentIndex = 0;
+
+        function updateUI() {
+            const viewport = document.querySelector('.flashcard-viewport');
+            viewport.classList.remove('flipped'); // Reset card rotation
+
+            if (activeDeck.length === 0) {
+                document.getElementById('front-term').innerText = "Empty Section";
+                document.getElementById('back-content').innerHTML = "<p>No flashcards match this filter criteria selection.</p>";
+                document.getElementById('card-counter').innerText = "Card 0 of 0";
+                document.getElementById('percent-complete').innerText = "0% Completed";
+                document.getElementById('progress').style.width = "0%";
+                return;
+            }
+
+            const currentCard = activeDeck[currentIndex];
+            
+            // Set Front Face Text
+            document.getElementById('front-term').innerText = currentCard.term;
+            
+            // Set Dynamic Back Face Layout Content (Preserving clean formatting)
+            const cleanDef = currentCard.def.replace(/\n/g, '<br>');
+            const cleanEx = currentCard.ex.replace(/\n/g, '<br>');
+            
+            document.getElementById('back-content').innerHTML = `
+                <div class="content-block">
+                    <div class="content-label">Core Concept / Summary</div>
+                    <div class="content-text">${cleanDef}</div>
+                </div>
+                <div class="content-block">
+                    <div class="content-label">Exam Verification / Theme</div>
+                    <div class="example-box">${cleanEx}</div>
+                </div>
+                <div class="hint-text" style="left: 40px; text-align: left;">⟲ Click card body to return front view</div>
+            `;
+
+            // Adjust Header Details Text Meta Indicators
+            document.getElementById('active-badge').innerText = currentCard.cat + " MODULE";
+            
+            // Update Metric Status Tracking Lines
+            const cardNum = currentIndex + 1;
+            const totalCards = activeDeck.length;
+            const progressPercent = Math.round((cardNum / totalCards) * 100);
+
+            document.getElementById('card-counter').innerText = `Card ${cardNum} of ${totalCards}`;
+            document.getElementById('percent-complete').innerText = `${progressPercent}% Reviewed`;
+            document.getElementById('progress').style.width = `${progressPercent}%`;
+        }
+
+        function flipCard(event) {
+            if (event) event.stopPropagation(); // Block dual trigger actions when clicking inside labels
+            if (activeDeck.length === 0) return;
+            const viewport = document.querySelector('.flashcard-viewport');
+            viewport.classList.toggle('flipped');
+        }
+
+        function navigateCard(direction, event) {
+            if (event) event.stopPropagation();
+            if (activeDeck.length === 0) return;
+            
+            currentIndex += direction;
+            if (currentIndex >= activeDeck.length) currentIndex = 0; // Seamless looping setups
+            if (currentIndex < 0) currentIndex = activeDeck.length - 1;
+            
+            updateUI();
+        }
+
+        function filterDeck(category, buttonElement) {
+            // Adjust Sidebar Highlight Styling Focus
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            buttonElement.classList.add('active');
+
+            // Shift Array Sets Based on Targets Selected
+            if (category === 'ALL') {
+                activeDeck = [...masterDataset];
+                document.getElementById('section-title').innerText = "Linear Active Recall Deck";
+            } else {
+                activeDeck = masterDataset.filter(card => card.cat === category);
+                document.getElementById('section-title').innerText = `${category} Concept Framework Module`;
+            }
+
+            currentIndex = 0;
+            updateUI();
+        }
+
+        // Initialize Workspace Elements Instantly on Page Delivery
+        window.onload = () => {
+            updateUI();
+        };
+    </script>
+</body>
+</html>
